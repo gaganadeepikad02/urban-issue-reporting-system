@@ -1,9 +1,4 @@
-try:
-    import tflite_runtime.interpreter as tflite
-    print("Using tflite-runtime")
-except ImportError:
-    import tensorflow as tf
-    print("Using TensorFlow")
+import tensorflow as tf
 import numpy as np
 import json
 from PIL import Image
@@ -16,8 +11,6 @@ CONFIDENCE_THRESHOLD = 0.70
 
 
 try:
-    interpreter = tflite.Interpreter(model_path=MODEL_PATH)
-except NameError:
     interpreter = tf.lite.Interpreter(model_path=MODEL_PATH)
     interpreter.allocate_tensors()
 except Exception as e:
