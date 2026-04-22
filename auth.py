@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from database import SessionLocal
-from datetime import datetime
+from datetime import datetime, timezone
 import re
 import models, utils, otp_service
 import uuid
@@ -375,7 +375,8 @@ def submit_complaint(
             country=country,
             priority=priority,
             description=description,
-            image_path=image_path
+            image_path=image_path,
+            created_at=datetime.now(timezone.utc)
         )
 
         notification = models.Notification(
