@@ -36,6 +36,16 @@ def validate_password(password: str):
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
 
 
+def serialize(obj):
+    data = obj.__dict__.copy()
+    data.pop("_sa_instance_state", None)
+
+    if "created_at" in data and data["created_at"]:
+        data["created_at"] = data["created_at"].isoformat()
+
+    return data
+
+
 @router.post("/send-otp")
 def send_otp(email: str, db: Session = Depends(get_db)):
 
@@ -254,7 +264,7 @@ def department_complaints(department: str, db: Session = Depends(get_db)):
             .order_by(models.Complaint.created_at.desc()) \
             .all()
 
-        return complaints
+        return [serialize(c) for c in complaints]
 
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to fetch complaints")
