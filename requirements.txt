@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+sqlalchemy
+pymysql
+python-jose
+pydantic
+python-multipart
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+cryptography
+geopy
+pillow
+numpy
+tflite-runtime
+python-dotenv
