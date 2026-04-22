@@ -1,12 +1,15 @@
+import os
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
+
 load_dotenv()
+os.makedirs("uploads", exist_ok=True)
+
 from database import Base, engine
 import auth
-import os
 import authority_auth
 import authority_dashboard
 
