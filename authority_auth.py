@@ -4,6 +4,8 @@ import models, utils, otp_service
 from database import get_db
 from email_service import send_email_otp
 import re
+from datetime import datetime, timezone
+
 
 router = APIRouter()
 
@@ -41,7 +43,12 @@ def serialize(obj):
     data.pop("_sa_instance_state", None)
 
     if "created_at" in data and data["created_at"]:
-        data["created_at"] = data["created_at"].isoformat()
+        dt = data["created_at"]
+
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+
+        data["created_at"] = dt.isoformat().replace("+00:00", "Z")
 
     return data
 
