@@ -15,6 +15,7 @@ from services.department_service import get_department
 from email_service import send_email_otp
 from PIL import Image
 from io import BytesIO
+from services.cloudinary_service import upload_image
 
 
 router = APIRouter()
@@ -259,18 +260,14 @@ def analyze_image(file: UploadFile = File(...), db: Session = Depends(get_db)):
         except Exception:
             raise HTTPException(400, "Invalid image file")
 
-        os.makedirs("uploads", exist_ok=True)
+        image_url = upload_image(contents)
 
-        filename = f"{uuid.uuid4()}.jpg"
-        path = f"uploads/{filename}"
+        temp_path = f"/tmp/{uuid.uuid4()}.jpg"
 
-        try:
-            with open(path, "wb") as f:
-                f.write(contents)
-        except Exception:
-            raise HTTPException(500, "Failed to save image")
+        with open(temp_path, "wb") as f:
+            f.write(contents)
 
-        category, confidence = ai_service.predict(path)
+        category, confidence = ai_service.predict(temp_path)
 
         if confidence < ai_service.CONFIDENCE_THRESHOLD:
             category = "Manual Required"
@@ -310,7 +307,7 @@ def analyze_image(file: UploadFile = File(...), db: Session = Depends(get_db)):
             "duplicate": duplicate_flag,
             "duplicate_count": dup_count,
             "master_id": master_id,
-            "image_path": path,
+            "image_path": image_url,
             "location_source": location_source,
             "address": address
         }
