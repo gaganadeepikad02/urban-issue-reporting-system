@@ -13,3 +13,4 @@ pillow
 numpy>=1.26.0
 tensorflow==2.21.0
 python-dotenv
+cloudinary
