@@ -208,6 +208,7 @@ def login(phone: str, password: str, db: Session = Depends(get_db)):
         return {
             "message": "Login successful",
             "token": token,
+            "user_id": user.id,
             "username": user.username
         }
 
