@@ -7,6 +7,16 @@ import models
 router = APIRouter()
 
 
+def serialize(obj):
+    data = obj.__dict__.copy()
+    data.pop("_sa_instance_state", None)
+
+    if "created_at" in data and data["created_at"]:
+        data["created_at"] = data["created_at"].isoformat()
+
+    return data
+
+
 @router.get("/dashboard-counts")
 def get_dashboard_counts(department: str, db: Session = Depends(get_db)):
 
@@ -65,7 +75,7 @@ def get_department_complaints(
 
     complaints = query.order_by(models.Complaint.created_at.desc()).all()
 
-    return complaints
+    return [serialize(c) for c in complaints]
 
 
 @router.get("/complaint/{complaint_id}")
@@ -86,12 +96,13 @@ def get_complaint_details(complaint_id: int, db: Session = Depends(get_db)):
         linked_count = 1
     
     user = db.query(models.User).filter(models.User.id == complaint.user_id).first()
-    result = complaint.__dict__
-    result["username"] = user.username if user else "Unknown"
-    result["phone"] = user.phone if user else "Unknown"
-    result["linked_count"] = linked_count
+    data = serialize(complaint)
 
-    return result
+    data["username"] = user.username if user else "Unknown"
+    data["phone"] = user.phone if user else "Unknown"
+    data["linked_count"] = linked_count
+
+    return data
 
 
 @router.post("/update-status")
@@ -141,7 +152,7 @@ def get_notifications(department: str, db: Session = Depends(get_db)):
         notifications.append({
             "title": "New Complaint",
             "message": f"{c.category} reported at {c.locality}",
-            "time": c.created_at
+            "time": c.created_at.isoformat() if c.created_at else None
         })
 
     return notifications
