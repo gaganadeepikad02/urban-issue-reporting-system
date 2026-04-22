@@ -278,7 +278,7 @@ def analyze_image(file: UploadFile = File(...), db: Session = Depends(get_db)):
 
         department = CATEGORY_DEPT.get(category, "Unknown")
 
-        lat, lon = get_exif_location(path)
+        lat, lon = get_exif_location(temp_path)
 
         location_source = "image_exif"
 
