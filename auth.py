@@ -65,6 +65,16 @@ def validate_password(password: str):
         raise HTTPException(status_code=400, detail="Password validation failed")
 
 
+def serialize(obj):
+    data = obj.__dict__.copy()
+    data.pop("_sa_instance_state", None)
+
+    if "created_at" in data and data["created_at"]:
+        data["created_at"] = data["created_at"].isoformat()
+
+    return data
+
+
 @router.post("/send-otp")
 def send_otp(email: str, db: Session = Depends(get_db)):
 
@@ -401,7 +411,7 @@ def submit_complaint(
 
         return {
             "message": "Complaint submitted successfully",
-            "created_at": complaint.created_at,
+            "created_at": complaint.created_at.isoformat(),
             "status": complaint.status
         }
 
@@ -499,7 +509,7 @@ def get_complaints(
             models.Complaint.created_at.desc()
         ).all()
 
-        return complaints
+        return [serialize(c) for c in complaints]
 
     except Exception:
         raise HTTPException(
@@ -527,7 +537,7 @@ def get_complaint_detail(
         if not complaint:
             raise HTTPException(404, "Complaint not found")
 
-        return complaint
+        return serialize(complaint)
 
     except HTTPException:
         raise
