@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Index, ForeignKey
 from sqlalchemy.sql import func
+from datetime import datetime, timezone
+
 
 try:
     from database import Base
@@ -21,7 +23,7 @@ class User(Base):
 
         is_verified = Column(Boolean, default=False, nullable=False)
 
-        created_at = Column(DateTime, server_default=func.now())
+        created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     except Exception as e:
         raise Exception(f"Error defining User model: {str(e)}")
@@ -40,7 +42,7 @@ class OTP(Base):
 
         verified = Column(Boolean, default=False, nullable=False)
 
-        created_at = Column(DateTime, server_default=func.now())
+        created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     except Exception as e:
         raise Exception(f"Error defining OTP model: {str(e)}")
@@ -84,7 +86,7 @@ class Complaint(Base):
 
         status = Column(String(50), default="Submitted")
 
-        created_at = Column(DateTime, server_default=func.now())
+        created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     except Exception as e:
         raise Exception(f"Error defining Complaint model: {str(e)}")
@@ -103,7 +105,7 @@ class Notification(Base):
 
         is_read = Column(Boolean, default=False)
 
-        created_at = Column(DateTime, server_default=func.now())
+        created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     except Exception as e:
         raise Exception(f"Error defining Notification model: {str(e)}")
@@ -126,7 +128,7 @@ class Authority(Base):
 
         password_hash = Column(String(255), nullable=False)
 
-        created_at = Column(DateTime, server_default=func.now())
+        created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     except Exception as e:
         raise Exception(f"Error defining Authority model: {str(e)}")
