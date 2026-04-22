@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 import models
 
+
 router = APIRouter()
 
 
@@ -83,8 +84,11 @@ def get_complaint_details(complaint_id: int, db: Session = Depends(get_db)):
         .count()
     else:
         linked_count = 1
-
+    
+    user = db.query(models.User).filter(models.User.id == complaint.user_id).first()
     result = complaint.__dict__
+    result["username"] = user.username if user else "Unknown"
+    result["phone"] = user.phone if user else "Unknown"
     result["linked_count"] = linked_count
 
     return result
