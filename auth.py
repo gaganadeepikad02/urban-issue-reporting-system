@@ -716,22 +716,34 @@ class UpdateProfileRequest(BaseModel):
 @router.post("/update-profile")
 def update_profile(data: UpdateProfileRequest, db: Session = Depends(get_db)):
 
-    user = db.query(models.User).filter(models.User.id == data.user_id).first()
+    try:
+        print("REQUEST DATA:", data)
 
-    if not user:
-        raise HTTPException(404, "User not found")
+        user = db.query(models.User).filter(models.User.id == data.user_id).first()
 
-    validate_phone(data.phone)
-    validate_email(data.email)
+        if not user:
+            raise HTTPException(404, "User not found")
 
-    user.username = data.username
-    user.phone = data.phone
-    user.email = data.email
+        print("BEFORE:", user.username, user.phone, user.email)
 
-    db.commit()
-    db.refresh(user)
+        validate_phone(data.phone)
+        validate_email(data.email)
 
-    return {"message": "Profile updated successfully"}
+        user.username = data.username
+        user.phone = data.phone
+        user.email = data.email
+
+        db.commit()
+        db.refresh(user)
+
+        print("AFTER:", user.username, user.phone, user.email)
+
+        return {"message": "Profile updated successfully"}
+
+    except Exception as e:
+        db.rollback()
+        print("🔥 ERROR:", repr(e))   
+        raise HTTPException(500, str(e))
 
 
 @router.post("/update-email")
