@@ -16,7 +16,7 @@ from email_service import send_email_otp
 from PIL import Image
 from io import BytesIO
 from services.cloudinary_service import upload_image
-from pydantic import BaseModel
+
 
 router = APIRouter()
 
@@ -706,44 +706,36 @@ def get_profile(
         )
 
 
-class UpdateProfileRequest(BaseModel):
-    user_id: int
-    username: str
-    phone: str
-    email: str
-
-
 @router.post("/update-profile")
-def update_profile(data: UpdateProfileRequest, db: Session = Depends(get_db)):
+def update_profile(
+    user_id: int,
+    username: str,
+    db: Session = Depends(get_db)
+):
 
     try:
-        print("REQUEST DATA:", data)
 
-        user = db.query(models.User).filter(models.User.id == data.user_id).first()
+        user = db.query(models.User)\
+            .filter(models.User.id == user_id)\
+            .first()
 
         if not user:
             raise HTTPException(404, "User not found")
 
-        print("BEFORE:", user.username, user.phone, user.email)
-
-        validate_phone(data.phone)
-        validate_email(data.email)
-
-        user.username = data.username
-        user.phone = data.phone
-        user.email = data.email
+        user.username = username
 
         db.commit()
-        db.refresh(user)
-
-        print("AFTER:", user.username, user.phone, user.email)
 
         return {"message": "Profile updated successfully"}
 
-    except Exception as e:
-        db.rollback()
-        print("🔥 ERROR:", repr(e))   
-        raise HTTPException(500, str(e))
+    except HTTPException:
+        raise
+
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to update profile"
+        )
 
 
 @router.post("/update-email")
