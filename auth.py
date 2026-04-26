@@ -392,6 +392,7 @@ def submit_complaint(
             priority=priority,
             description=description,
             image_path=image_path,
+            status="Pending", 
             created_at=datetime.now(timezone.utc)
         )
 
