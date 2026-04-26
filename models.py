@@ -84,7 +84,7 @@ class Complaint(Base):
 
         image_path = Column(String(255))
 
-        status = Column(String(50), default="Submitted")
+        status = Column(String(50), default="Pending")
 
         created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
