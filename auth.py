@@ -710,6 +710,8 @@ def get_profile(
 def update_profile(
     user_id: int,
     username: str,
+    phone: str,
+    email: str,
     db: Session = Depends(get_db)
 ):
 
@@ -721,8 +723,13 @@ def update_profile(
 
         if not user:
             raise HTTPException(404, "User not found")
+        
+        validate_phone(phone)
+        validate_email(email)
 
         user.username = username
+        user.phone = phone
+        user.email = email
 
         db.commit()
 
