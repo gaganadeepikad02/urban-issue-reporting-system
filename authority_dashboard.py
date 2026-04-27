@@ -110,21 +110,35 @@ def update_status(
     if not complaint:
         raise HTTPException(404, "Complaint not found")
 
-    complaint.status = status
-    complaint.remarks = remarks
+    if complaint.master_id:
+
+        duplicate_complaints = db.query(models.Complaint).filter(
+            models.Complaint.master_id == complaint.master_id
+        ).all()
+
+        for comp in duplicate_complaints:
+            comp.status = status
+            comp.remarks = remarks
+
+            db.add(models.Notification(
+                user_id=comp.user_id,
+                title="Complaint Status Updated",
+                message=f"Your complaint #{comp.id} is now {status}"
+            ))
+
+    else:
+        complaint.status = status
+        complaint.remarks = remarks
+
+        db.add(models.Notification(
+            user_id=complaint.user_id,
+            title="Complaint Status Updated",
+            message=f"Your complaint #{complaint.id} is now {status}"
+        ))
 
     db.commit()
 
-    notification = models.Notification(
-        user_id=complaint.user_id,
-        title="Complaint Status Updated",
-        message=f"Your complaint #{complaint.id} is now {status}"
-    )
-
-    db.add(notification)
-    db.commit()
-
-    return {"message": "Complaint status updated successfully"}
+    return {"message": "Complaint(s) status updated successfully"}
 
 
 @router.get("/notifications")
