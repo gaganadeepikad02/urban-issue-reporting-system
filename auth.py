@@ -758,13 +758,8 @@ def update_email(user_id: int, email: str, db: Session = Depends(get_db)):
 
 
 @router.delete("/delete-account")
-def delete_account(
-    user_id: int,
-    db: Session = Depends(get_db)
-):
-
+def delete_account(user_id: int, db: Session = Depends(get_db)):
     try:
-
         user = db.query(models.User)\
             .filter(models.User.id == user_id)\
             .first()
@@ -772,16 +767,24 @@ def delete_account(
         if not user:
             raise HTTPException(404, "User not found")
 
+        db.query(models.Complaint).filter(
+            models.Complaint.user_id == user_id
+        ).delete()
+
+        db.query(models.Notification).filter(
+            models.Notification.user_id == user_id
+        ).delete()
+
+        db.commit()
         db.delete(user)
         db.commit()
 
         return {"message": "Account deleted successfully"}
 
-    except HTTPException:
-        raise
-
-    except Exception:
+    except Exception as e:
+        db.rollback()
+        print("DELETE ERROR:", str(e))  
         raise HTTPException(
             status_code=500,
-            detail="Failed to delete account"
+            detail=str(e) 
         )
