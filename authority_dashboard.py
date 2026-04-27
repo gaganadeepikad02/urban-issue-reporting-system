@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 import models
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 
 router = APIRouter()
@@ -119,28 +119,35 @@ def update_status(
     db: Session = Depends(get_db)
 ):
 
-    complaint = db.query(models.Complaint) \
-        .filter(models.Complaint.id == complaint_id) \
+    complaint = db.query(models.Complaint)\
+        .filter(models.Complaint.id == complaint_id)\
         .first()
 
     if not complaint:
         raise HTTPException(404, "Complaint not found")
 
-    complaint.status = status
-    complaint.remarks = remarks
+    master_id = complaint.master_id if complaint.master_id else complaint.id
+
+    linked_complaints = db.query(models.Complaint)\
+        .filter(
+            (models.Complaint.id == master_id) |
+            (models.Complaint.master_id == master_id)
+        ).all()
+
+    for c in linked_complaints:
+        c.status = status
+        c.remarks = remarks
+
+        notification = models.Notification(
+            user_id=c.user_id,
+            title="Complaint Status Updated",
+            message=f"Your complaint #{c.id} is now {status}"
+        )
+        db.add(notification)
 
     db.commit()
 
-    notification = models.Notification(
-        user_id=complaint.user_id,
-        title="Complaint Status Updated",
-        message=f"Your complaint #{complaint.id} is now {status}"
-    )
-
-    db.add(notification)
-    db.commit()
-
-    return {"message": "Complaint status updated successfully"}
+    return {"message": "All linked complaints updated"}
 
 
 @router.get("/notifications")
@@ -155,10 +162,12 @@ def get_notifications(department: str, db: Session = Depends(get_db)):
     notifications = []
 
     for c in complaints:
+        ist_time = c.created_at + timedelta(hours=5, minutes=30)
+
         notifications.append({
             "title": "New Complaint",
             "message": f"{c.category} reported at {c.locality}",
-            "time": c.created_at.isoformat() if c.created_at else None
+            "time": ist_time.isoformat()
         })
 
     return notifications
