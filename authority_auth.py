@@ -257,7 +257,11 @@ def reset_password(email: str, new_password: str, db: Session = Depends(get_db))
 
 
 @router.get("/department-complaints")
-def department_complaints(department: str, db: Session = Depends(get_db)):
+def department_complaints(
+    department: str,
+    priority: str | None = None,
+    db: Session = Depends(get_db)
+):
 
     allowed = ["Roads", "Sanitation", "Disaster"]
 
@@ -265,11 +269,14 @@ def department_complaints(department: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid department")
 
     try:
+        query = db.query(models.Complaint).filter(
+            models.Complaint.department == department
+        )
 
-        complaints = db.query(models.Complaint) \
-            .filter(models.Complaint.department == department) \
-            .order_by(models.Complaint.created_at.desc()) \
-            .all()
+        if priority:
+            query = query.filter(models.Complaint.priority == priority)
+
+        complaints = query.order_by(models.Complaint.created_at.desc()).all()
 
         return [serialize(c) for c in complaints]
 
