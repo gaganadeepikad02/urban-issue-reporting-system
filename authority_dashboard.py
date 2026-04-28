@@ -54,6 +54,7 @@ def get_dashboard_counts(department: str, db: Session = Depends(get_db)):
 def get_department_complaints(
     department: str,
     status: str | None = None,
+    priority: str | None = None,
     db: Session = Depends(get_db)
 ):
 
@@ -63,6 +64,9 @@ def get_department_complaints(
 
     if status:
         query = query.filter(models.Complaint.status == status)
+
+    if priority:
+        query = query.filter(models.Complaint.priority == priority)
 
     complaints = query.order_by(models.Complaint.created_at.desc()).all()
 
