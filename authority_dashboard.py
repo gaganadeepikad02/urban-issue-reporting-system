@@ -189,3 +189,19 @@ def update_profile(
     db.commit()
 
     return {"message": "Profile updated successfully"}
+
+
+@router.delete("/delete-account")
+def delete_account(email: str, db: Session = Depends(get_db)):
+
+    authority = db.query(models.Authority).filter(
+        models.Authority.email == email
+    ).first()
+
+    if not authority:
+        raise HTTPException(404, "Authority not found")
+
+    db.delete(authority)
+    db.commit()
+
+    return {"message": "Account deleted successfully"}
